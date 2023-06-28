@@ -1,0 +1,19 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.7
+    commands:
+      - aws s3 cp s3://"$ASSETS_BUCKET_NAME"/terraform/"$TERRAFORM_VERSION"/terraform_"$TERRAFORM_VERSION"_linux_amd64.zip terraform_"$TERRAFORM_VERSION"_linux_amd64.zip
+      - unzip terraform_"$TERRAFORM_VERSION"_linux_amd64.zip
+      - mv terraform /usr/local/bin/
+      - aws s3 cp s3://"$ASSETS_BUCKET_NAME"/providers/registry.terraform.io/hashicorp/aws/terraform-provider-aws_"$AWS_PROVIDER_VERSION"_linux_amd64.zip terraform-provider-aws_"$AWS_PROVIDER_VERSION"_linux_amd64.zip
+      - mkdir -p terraform.d/plugins/registry.terraform.io/hashicorp/aws
+      - mv terraform-provider-aws_"$AWS_PROVIDER_VERSION"_linux_amd64.zip terraform.d/plugins/registry.terraform.io/hashicorp/aws/
+  build:
+    commands:
+      - terraform --version
+      - terraform init -plugin-dir=terraform.d/plugins -input=false
+      - terraform validate
+      - terraform plan -lock=false -input=false
